@@ -7,7 +7,12 @@
 
 **Faculty of Computers and Data Science**  
 **Fall 2025 | Cybersecurity Program | Mobile App Development**
-**link video for project ![Link]([https://img.shields.io/badge/License-MIT-green.svg](https://drive.google.com/file/d/1nqBohtHiQPw-n56LFfxN2aFXX_A4gAnI/view?usp=sharing))**
+
+## Project Overview
+
+This video explains the details of the project and provides a walkthrough of its features and implementation.
+
+🎬 [Watch the project explanation video](https://drive.google.com/file/d/1nqBohtHiQPw-n56LFfxN2aFXX_A4gAnI/view?usp=sharing)
 
 
 ---

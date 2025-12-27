@@ -1088,3 +1088,760 @@ describe('Laza App - Product Browsing', () => {
     // Find first product
     const product = await $('android=new UiSelector().className("android.view.View").instance(0)');
     await product.click();
+```
+
+
+---
+
+
+
+
+# Firebase Setup Guide for Laza App
+
+This guide provides detailed step-by-step instructions for setting up Firebase for the Laza e-commerce application.
+
+---
+
+## 📋 Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Create Firebase Project](#1-create-firebase-project)
+3. [Enable Authentication](#2-enable-authentication)
+4. [Setup Firestore Database](#3-setup-firestore-database)
+5. [Configure Android App](#4-configure-android-app)
+6. [Configure iOS App](#5-configure-ios-app)
+7. [Configure Web App](#6-configure-web-app)
+8. [Deploy Firestore Rules](#7-deploy-firestore-rules)
+9. [Test Your Setup](#8-test-your-setup)
+10. [Troubleshooting](#9-troubleshooting)
+
+---
+
+## Prerequisites
+
+Before starting, ensure you have:
+- ✅ Google account
+- ✅ Flutter project cloned and set up
+- ✅ Internet connection
+- ✅ (Optional) Firebase CLI for advanced configuration
+
+---
+
+## 1. Create Firebase Project
+
+### Step 1: Access Firebase Console
+
+1. Navigate to [Firebase Console](https://console.firebase.google.com/)
+2. Sign in with your Google account
+3. Click *"Add project"* or *"Create a project"*
+
+### Step 2: Configure Project
+
+1. *Project Name*:
+   - Enter: lazaaaaaaa-9112b (or your preferred name)
+   - This creates a unique project ID
+   - Click *Continue*
+
+2. *Google Analytics* (Optional):
+   - Toggle *OFF* for simpler setup
+   - Or keep *ON* for analytics features
+   - Click *Continue*
+
+3. *Create Project*:
+   - Wait for project creation (30-60 seconds)
+   - Click *Continue* when complete
+
+You now have a Firebase project! 🎉
+
+---
+
+## 2. Enable Authentication
+
+### Step 1: Navigate to Authentication
+
+1. In Firebase Console sidebar, click *Authentication*
+2. Click *Get started* button
+
+### Step 2: Enable Email/Password Sign-in
+
+1. Click on the *Sign-in method* tab
+2. Find *Email/Password* in the providers list
+3. Click on it to expand
+4. Toggle the *Enable* switch to ON
+5. Click *Save*
+
+✅ Email/Password authentication is now enabled!
+
+### Step 3: (Optional) Customize Email Templates
+
+1. Go to *Templates* tab in Authentication
+2. You'll see three templates:
+   - *Email verification*
+   - *Password reset*
+   - *Email address change*
+
+3. Click on *Password reset* to customize:
+   - Change sender name to: Laza
+   - Customize the email message if desired
+   - Click *Save*
+
+4. Repeat for other templates if needed
+
+### Step 4: (Optional) Authorized Domains
+
+1. Go to *Settings* tab
+2. Scroll to *Authorized domains*
+3. By default, localhost is authorized for development
+4. For production web deployment, add your domain later
+
+---
+
+## 3. Setup Firestore Database
+
+### Step 1: Create Database
+
+1. In Firebase Console sidebar, click *Firestore Database*
+2. Click *Create database* button
+
+### Step 2: Choose Security Rules
+
+1. You'll see two options:
+   - *Start in production mode* ✅ (Recommended - we'll add custom rules)
+   - *Start in test mode* (Allows all access - not secure)
+
+2. Select *Start in production mode*
+3. Click *Next*
+
+### Step 3: Select Location
+
+1. Choose a Cloud Firestore location closest to your users:
+   - *For Egypt/Middle East*: eur3 (europe-west)
+   - *For North America*: nam5 (us-central)
+   - *For Asia*: asia-southeast1 (Singapore)
+
+2. ⚠ *Important*: Location cannot be changed after selection!
+3. Click *Enable*
+4. Wait for database creation (1-2 minutes)
+
+### Step 4: Understand the Database
+
+Your Firestore database is now created with these characteristics:
+- *Collections*: Will be created automatically when app writes data
+- *Documents*: Individual records within collections
+- *Subcollections*: Nested collections under documents
+
+*Expected Collections* (created by app):
+- users - User profiles
+- users/{uid}/cart - Shopping carts (subcollection)
+- users/{uid}/favorites - Favorite products (subcollection)
+- notes - User notes
+- products - Product catalog (if storing locally)
+
+---
+
+## 4. Configure Android App
+
+### Step 1: Register Android App
+
+1. In Firebase Console, click the *⚙ gear icon* (Project Settings)
+2. Scroll to *Your apps* section
+3. Click the *Android icon* to add Android app
+
+### Step 2: Enter Package Details
+
+1. *Android package name*: com.example.lazaaaaaaa
+   
+   📝 How to find this:
+   
+   Open: android/app/build.gradle
+   Find line: applicationId "com.example.lazaaaaaaa"
+   Copy the value
+   
+
+2. *App nickname* (optional): Laza Android
+
+3. *Debug signing certificate SHA-1* (recommended for Auth):
+   
+   Run this command in terminal:
+   bash
+   # Windows (Command Prompt)
+   keytool -list -v -keystore "%USERPROFILE%\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+
+   # macOS/Linux (Terminal)
+   keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+   
+   
+   Copy the SHA-1 fingerprint that appears:
+   
+   Example: A1:B2:C3:D4:E5:F6:...
+   
+
+4. Click *Register app*
+
+### Step 3: Download Configuration File
+
+1. Click *Download google-services.json*
+2. Save the file to your computer
+
+### Step 4: Add File to Android Project
+
+1. Locate the file: google-services.json
+2. Move it to: android/app/ directory in your project
+   
+   
+   YourProject/
+   └── android/
+       └── app/
+           └── google-services.json  ← Place here
+   
+
+3. ✅ Verify the file is in the correct location
+
+### Step 5: Configure Gradle Files
+
+The project should already have these configurations, but verify:
+
+*File*: android/build.gradle (project-level)
+gradle
+buildscript {
+    dependencies {
+        classpath 'com.google.gms:google-services:4.4.0'
+    }
+}
+
+
+*File*: android/app/build.gradle (app-level)
+gradle
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'  // This line
+
+
+### Step 6: Sync Project
+
+In Android Studio:
+1. Click *File* → *Sync Project with Gradle Files*
+2. Wait for sync to complete
+3. Check for any errors in the build output
+
+Or via command line:
+bash
+cd android
+./gradlew clean
+./gradlew build
+cd ..
+
+
+✅ Android configuration complete!
+
+---
+
+## 5. Configure iOS App
+
+> *Note*: This section requires macOS with Xcode installed.
+
+### Step 1: Register iOS App
+
+1. In Firebase Console Project Settings, scroll to *Your apps*
+2. Click the *iOS icon* to add iOS app
+
+### Step 2: Enter Bundle Details
+
+1. *iOS bundle ID*: com.example.lazaaaaaaa
+   
+   📝 How to find this:
+   
+   Open Xcode: ios/Runner.xcworkspace
+   Select Runner in Project Navigator
+   Go to: General tab → Identity section
+   Find: Bundle Identifier
+   
+
+2. *App nickname* (optional): Laza iOS
+
+3. *App Store ID* (optional): Leave empty for development
+
+4. Click *Register app*
+
+### Step 3: Download Configuration File
+
+1. Click *Download GoogleService-Info.plist*
+2. Save the file to your computer
+
+### Step 4: Add File to iOS Project
+
+1. Open your iOS project in Xcode:
+   bash
+   open ios/Runner.xcworkspace
+   
+
+2. In Xcode's Project Navigator, locate the *Runner* folder
+
+3. Drag GoogleService-Info.plist from Finder into Xcode's *Runner* folder
+
+4. ⚠ *Important*: In the dialog that appears:
+   - ✅ Check *"Copy items if needed"*
+   - ✅ Check *Runner* under "Add to targets"
+   - Click *Finish*
+
+5. Verify the file appears in:
+   
+   YourProject/
+   └── ios/
+       └── Runner/
+           └── GoogleService-Info.plist  ← Should be here
+   
+
+### Step 5: Install CocoaPods Dependencies
+
+bash
+cd ios
+pod install
+cd ..
+
+
+If you encounter errors:
+bash
+cd ios
+pod deintegrate
+pod install
+cd ..
+
+
+✅ iOS configuration complete!
+
+---
+
+## 6. Configure Web App
+
+### Step 1: Register Web App
+
+1. In Firebase Console Project Settings, scroll to *Your apps*
+2. Click the *Web icon* (</>) to add web app
+
+### Step 2: Configure Web App
+
+1. *App nickname*: Laza Web
+
+2. *Firebase Hosting* (optional):
+   - ✅ Check this if you plan to deploy to Firebase Hosting
+   - Leave unchecked for now if unsure
+
+3. Click *Register app*
+
+### Step 3: Copy Configuration
+
+Firebase will display configuration code:
+
+javascript
+const firebaseConfig = {
+  apiKey: "AIzaSyBfcp11Qd1zdoBz4dWnKzTZ4NA0BJ0mwzY",
+  authDomain: "lazaaaaaaa-9112b.firebaseapp.com",
+  projectId: "lazaaaaaaa-9112b",
+  storageBucket: "lazaaaaaaa-9112b.firebasestorage.app",
+  messagingSenderId: "130524301296",
+  appId: "1:130524301296:web:8a37f61d588cd2f2e3ff35",
+  measurementId: "G-WTXJQRQY47"
+};
+
+
+### Step 4: Verify Configuration
+
+The configuration is already in lib/firebase_options.dart:
+
+dart
+static const FirebaseOptions web = FirebaseOptions(
+  apiKey: 'AIzaSyBfcp11Qd1zdoBz4dWnKzTZ4NA0BJ0mwzY',
+  appId: '1:130524301296:web:8a37f61d588cd2f2e3ff35',
+  messagingSenderId: '130524301296',
+  projectId: 'lazaaaaaaa-9112b',
+  authDomain: 'lazaaaaaaa-9112b.firebaseapp.com',
+  storageBucket: 'lazaaaaaaa-9112b.firebasestorage.app',
+  measurementId: 'G-WTXJQRQY47',
+);
+
+
+✅ Verify these values match your Firebase project!
+
+✅ Web configuration complete!
+
+---
+
+## 7. Deploy Firestore Rules
+
+Firestore security rules control who can read/write data. Deploy the rules from the firestore.rules file.
+
+### Method 1: Firebase Console (Easiest)
+
+1. Open [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Go to *Firestore Database* in sidebar
+4. Click the *Rules* tab
+5. You'll see the default production mode rules
+6. *Delete all existing content* in the editor
+7. Open the firestore.rules file from this repository
+8. *Copy the entire content* of firestore.rules
+9. *Paste* it into the Firebase Console rules editor
+10. Click *Publish* button
+11. Confirm by clicking *Publish* again
+12. Wait for "Rules published successfully" message
+
+### Method 2: Firebase CLI (Advanced)
+
+#### Prerequisites:
+
+bash
+# Install Node.js from https://nodejs.org/
+
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Verify installation
+firebase --version
+
+
+#### Login to Firebase:
+
+bash
+firebase login
+
+
+This opens a browser for Google authentication.
+
+#### Initialize Firebase:
+
+bash
+# In your project root directory
+firebase init firestore
+
+
+Select these options:
+- *What do you want to use as your project?* → Use an existing project
+- *Select your project* → lazaaaaaaa-9112b
+- *What file should be used for Firestore Rules?* → firestore.rules (default)
+- *What file should be used for Firestore indexes?* → firestore.indexes.json (default)
+
+#### Deploy Rules:
+
+bash
+# Deploy only Firestore rules
+firebase deploy --only firestore:rules
+
+
+Expected output:
+
+✔  Deploy complete!
+Firestore Rules: Published successfully
+
+
+### Verify Rules Deployment
+
+1. Go to Firebase Console → *Firestore Database* → *Rules* tab
+2. You should see your custom rules
+3. Check the *Published* timestamp (should be recent)
+4. The rules should match your firestore.rules file exactly
+
+---
+
+## 8. Test Your Setup
+
+### Test 1: Run the App
+
+bash
+# Clean and get dependencies
+flutter clean
+flutter pub get
+
+# Run the app
+flutter run
+
+
+*Check the console for*:
+- ✅ No Firebase initialization errors
+- ✅ "Firebase initialized successfully" (if you have this log)
+- ✅ App launches without crashes
+
+### Test 2: Test Authentication
+
+1. *Sign Up*:
+   - Open the app
+   - Click *Sign up* button
+   - Enter test credentials:
+     - Name: Test User
+     - Email: test@example.com
+     - Password: test123456
+   - Click *Sign up*
+
+2. *Verify in Console*:
+   - Go to Firebase Console → *Authentication* → *Users*
+   - You should see the new user:
+     
+     test@example.com | User ID | Creation date
+     
+
+3. *Login*:
+   - Logout from the app
+   - Click *Login*
+   - Enter same credentials
+   - Should successfully login
+
+### Test 3: Test Firestore
+
+1. *Add to Favorites*:
+   - Browse products in the app
+   - Tap the heart icon to favorite a product
+   - The heart should fill/change color
+
+2. *Verify in Firestore*:
+   - Go to Firebase Console → *Firestore Database*
+   - Navigate to: users → {userId} → favorites
+   - You should see a document for the favorited product
+
+3. *Add to Cart*:
+   - Add a product to cart
+   - Go to cart screen
+   - Verify item appears
+
+4. *Verify in Firestore*:
+   - In Firestore Console, go to: users → {userId} → cart
+   - You should see cart item documents
+
+### Test 4: Test Rules (Security)
+
+*Test that rules work correctly*:
+
+1. *Can access own data*: ✅ (Already tested above)
+
+2. *Cannot access other user's data*:
+   - Create a second user account
+   - Try to access first user's favorites (should fail)
+   - This is handled automatically by the app
+
+### Test 5: Check Console Logs
+
+bash
+flutter run -v
+
+
+Look for successful initialization messages:
+
+[log] Firebase initialized for platform: android
+[log] User signed in: test@example.com
+[log] Fetched 5 products from API
+
+
+---
+
+## 9. Troubleshooting
+
+### Issue: "Firebase app not initialized"
+
+*Cause*: Missing configuration files
+
+*Solution*:
+1. Verify files exist:
+   bash
+   ls android/app/google-services.json
+   ls ios/Runner/GoogleService-Info.plist
+   
+
+2. If missing, re-download from Firebase Console
+
+3. Clean and rebuild:
+   bash
+   flutter clean
+   flutter pub get
+   flutter run
+   
+
+### Issue: "Permission denied" in Firestore
+
+*Cause*: Rules not deployed or user not authenticated
+
+*Solution*:
+1. Check user is logged in:
+   dart
+   print(FirebaseAuth.instance.currentUser?.email);
+   
+
+2. Verify rules are deployed (Firebase Console → Firestore → Rules)
+
+3. Check rules match firestore.rules file
+
+### Issue: Android build fails after adding Firebase
+
+*Cause*: Gradle cache or configuration issues
+
+*Solution*:
+bash
+cd android
+./gradlew clean
+cd ..
+flutter clean
+flutter pub get
+flutter build apk
+
+
+### Issue: iOS build fails with CocoaPods error
+
+*Cause*: Pod dependencies conflict
+
+*Solution*:
+bash
+cd ios
+pod deintegrate
+rm Podfile.lock
+pod install
+cd ..
+flutter clean
+flutter run
+
+
+### Issue: "google-services.json not found"
+
+*Cause*: File not in correct location
+
+*Solution*:
+1. The file MUST be in: android/app/google-services.json
+2. NOT in: android/google-services.json ❌
+3. NOT in: android/app/src/google-services.json ❌
+
+### Issue: Web app won't initialize
+
+*Cause*: Configuration mismatch
+
+*Solution*:
+1. Verify firebase_options.dart matches Firebase Console
+2. Check Project Settings → Your apps → Web app
+3. Compare all values (API key, Project ID, etc.)
+
+### Issue: "Plugin not found" error
+
+*Cause*: Dependencies not installed
+
+*Solution*:
+bash
+flutter pub get
+flutter clean
+flutter pub get
+flutter run
+
+
+---
+
+## 📚 Additional Resources
+
+### Official Documentation
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [FlutterFire Documentation](https://firebase.flutter.dev/)
+- [Firestore Security Rules](https://firebase.google.com/docs/firestore/security/get-started)
+
+### Firebase Console Quick Links
+Replace lazaaaaaaa-9112b with your project ID:
+
+- *Project Overview*: https://console.firebase.google.com/project/lazaaaaaaa-9112b
+- *Authentication*: https://console.firebase.google.com/project/lazaaaaaaa-9112b/authentication
+- *Firestore*: https://console.firebase.google.com/project/lazaaaaaaa-9112b/firestore
+- *Project Settings*: https://console.firebase.google.com/project/lazaaaaaaa-9112b/settings/general
+
+### Useful Firebase CLI Commands
+
+bash
+# Login
+firebase login
+
+# List projects
+firebase projects:list
+
+# Check current project
+firebase use
+
+# Switch project
+firebase use lazaaaaaaa-9112b
+
+# Deploy rules
+firebase deploy --only firestore:rules
+
+# Deploy everything
+firebase deploy
+
+
+---
+
+## 🔐 Security Best Practices
+
+1. *Never commit config files to public repos*:
+   - Add to .gitignore:
+     
+     android/app/google-services.json
+     ios/Runner/GoogleService-Info.plist
+     
+
+2. *Keep rules restrictive*:
+   - Default to deny access
+   - Only allow what's necessary
+   - Test rules thoroughly
+
+3. *Enable App Check* (Production):
+   - Protects your backend from abuse
+   - Firebase Console → App Check
+
+4. *Monitor usage*:
+   - Check Firebase Console → Usage dashboard
+   - Set up budget alerts
+   - Monitor for suspicious activity
+
+5. *Use environment variables*:
+   - For sensitive configuration
+   - Never hardcode secrets in code
+
+---
+
+## ✅ Setup Checklist
+
+Before considering setup complete, verify:
+
+- [ ] Firebase project created
+- [ ] Authentication enabled (Email/Password)
+- [ ] Firestore database created
+- [ ] Android app configured (google-services.json added)
+- [ ] iOS app configured (GoogleService-Info.plist added)
+- [ ] Web app configured (firebase_options.dart verified)
+- [ ] Firestore rules deployed
+- [ ] App runs without Firebase errors
+- [ ] Can sign up new user
+- [ ] Can login existing user
+- [ ] Can add to favorites (data appears in Firestore)
+- [ ] Can add to cart (data appears in Firestore)
+- [ ] Rules prevent unauthorized access
+
+---
+
+## 🎉 Congratulations!
+
+Your Firebase setup is complete! The Laza app now has:
+- ✅ User authentication
+- ✅ Cloud database (Firestore)
+- ✅ Security rules
+- ✅ Multi-platform support (Android, iOS, Web)
+
+*Next steps*:
+- Build your app features
+- Test thoroughly
+- Deploy to app stores
+- Monitor usage in Firebase Console
+
+For any issues, refer to the [Troubleshooting](#9-troubleshooting) section or check the main [README.md](README.md).
+
+---
+
+*Last Updated*: December 26, 2025
+
+
+##  project is build by :
+
+- Mostafa Hussein 2305017
+-Yara Mohamed Elshahat 2305259
+-Ahmed Raouf 2305067
+
+
+
